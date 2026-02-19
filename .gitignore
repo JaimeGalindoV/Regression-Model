@@ -1,0 +1,33 @@
+# Python
+venv/
+.venv/
+env/
+ENV/
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model artifacts
+*.pkl
+*.h5
+*.pth
+model_evaluation.png
+
+# Data (opcional - depende si quieres subir el CSV)
+# *.csv

@@ -1,8 +1,8 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-# from sklearn.linear_model import Ridge
-
+from sklearn.linear_model import Ridge
+from sklearn.metrics import mean_squared_error
 
 class DataPreprocessor:
     
@@ -11,7 +11,7 @@ class DataPreprocessor:
         # Esto ayuda al modelo a converger más rápido y evita que características con valores grandes dominen
         self.scaler = StandardScaler()
             
-    def load_data(self, filepath='insurance.csv'):
+    def load_data(self, filepath='./insurance.csv'):
         """
         Carga el dataset desde un archivo CSV.
         """
@@ -56,7 +56,7 @@ class DataPreprocessor:
         X = df.drop("charges", axis=1)
         # y contiene solo "charges" que es lo que se va a predecir
         y = df["charges"]
-        return train_test_split(X, y, test_size=test_size, random_state=random_state)
+        return train_test_split(X, y, test_size=test_size, random_state=random_state, shuffle=True)    
     
     def scale_and_transform(self, X_train, X_test):
         """
@@ -71,13 +71,22 @@ class DataPreprocessor:
 
 
 class ModelTrainer:
-    def __init__(self):
-        pass
+    def __init__(self, alpha =1.0):
+        self.model = Ridge(alpha)
+    
+    def train(self, X_train, y_train):
+        self.model.fit(X_train, y_train)
+        print("Modelo entrenado correctamente.")
 
+    def evaluate(self, X_test, y_test):
+        predictions = self.model.predict(X_test)
+        mse = mean_squared_error(y_test, predictions)
+        print(f"MSE: {mse}")
+        return mse
 
 if __name__ == "__main__":
     preprocessor = DataPreprocessor()
-    df = preprocessor.load_data('insurance.csv')
+    df = preprocessor.load_data('./insurance.csv')
     df = preprocessor.clean_data(df)
     df = preprocessor.create_features(df)
     #Dividir en conjuntos de Train (70%) y Test (30%)
@@ -89,8 +98,9 @@ if __name__ == "__main__":
     X_train_scaled, X_test_scaled = preprocessor.scale_and_transform(X_train, X_test)
     
     #TODO: Entrenar el modelo con X_train_scaled y y_train, luego evaluar con X_test_scaled y y_test
-    trainer = ModelTrainer()
+    trainer = ModelTrainer(alpha=0.999)
     trainer.train(X_train_scaled, y_train)
+    mse = trainer.evaluate(X_test_scaled, y_test)
     
 
 

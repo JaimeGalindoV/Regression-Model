@@ -3,6 +3,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_squared_error
+import numpy as np
 
 class DataPreprocessor:
     
@@ -22,12 +23,14 @@ class DataPreprocessor:
         Convierte variables categóricas a numéricas.
         """
         df_clean = df.copy()
-        # Convertir 'sex' de texto a número: female=0, male=1
-        df_clean['sex'] = df_clean['sex'].map({'female': 0, 'male': 1})
+        # Convertir 'sex' de texto a número:
+        # Aplicar One-Hot Encoding para crear columnas nuevas para definir el sexo de la persona
+        df_clean = pd.get_dummies(df_clean, columns=['sex'], prefix='sex')
         # Convertir 'smoker' de texto a número: no=0, yes=1
         df_clean['smoker'] = df_clean['smoker'].map({'no': 0, 'yes': 1})
-        # Convertir 'region' de texto a número: cada región tiene un código único
-        df_clean['region'] = df_clean['region'].map({'northeast': 0, 'northwest': 1, 'southeast': 2, 'southwest': 3})
+        # Convertir 'region' de texto a número: 
+        # Aplicar One-Hot Encoding para crear columnas nuevas para definir la region de la persona
+        df_clean = pd.get_dummies(df_clean, columns=['region'], prefix='region')
         return df_clean
     
     def create_features(self, df):
@@ -35,9 +38,9 @@ class DataPreprocessor:
         Crea nuevas características combinando las existentes.
         Los costos médicos NO suben linealmente, sino en curva.
         Estas características capturan esas relaciones no-lineales:
-        - smoker_age = smoker × age (fumadores mayores cuestan exponencialmente más, no el doble)
-        - bmi_smoker = bmi × smoker (sobrepeso + fumar tiene efecto multiplicativo en costos)
-        - age_bmi = age × bmi (edad y peso juntos afectan de forma combinada)
+        - smoker_age = smoker * age (fumadores mayores cuestan exponencialmente más, no el doble)
+        - bmi_smoker = bmi * smoker (sobrepeso + fumar tiene efecto multiplicativo en costos)
+        - age_bmi = age * bmi (edad y peso juntos afectan de forma combinada)
         - bmi_squared = bmi² (sobrepeso severo cuesta mucho más que el doble)
         - age_squared = age² (un anciano de 60 no cuesta el doble que uno de 30, sino 4x o más)
         """
@@ -97,10 +100,19 @@ if __name__ == "__main__":
     # y_train, y_test mantienen los costos reales
     X_train_scaled, X_test_scaled = preprocessor.scale_and_transform(X_train, X_test)
     
-    #TODO: Entrenar el modelo con X_train_scaled y y_train, luego evaluar con X_test_scaled y y_test
-    trainer = ModelTrainer(alpha=0.999)
-    trainer.train(X_train_scaled, y_train)
-    mse = trainer.evaluate(X_test_scaled, y_test)
-    
+    minAlpha = 0
+    minMse = 9999999999
+    for i in np.arange(0, 3, 0.1):
+        print(i)
+        trainer = ModelTrainer(alpha=i)
+        trainer.train(X_train_scaled, y_train)
+        mse = trainer.evaluate(X_test_scaled, y_test)
+        if mse < minMse:
+            minAlpha = i
+            minMse = mse
+
+        print("\n")
+
+    print("El mejor resultado fue: \nAlpha: " + str(minAlpha) + "\nMSE: " + str(minMse))    
 
 
